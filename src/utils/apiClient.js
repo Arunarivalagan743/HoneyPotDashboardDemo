@@ -3,7 +3,7 @@ import useAuthStore from '../store/authStore';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: 'https://honepotdemobackend.onrender.com/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

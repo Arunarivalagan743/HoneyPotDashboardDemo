@@ -1,6 +1,6 @@
 import useAuthStore from '../store/authStore';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://honepotdemobackend.onrender.com/api';
 
 // Create an API client with automatic token handling
 class ApiClient {
