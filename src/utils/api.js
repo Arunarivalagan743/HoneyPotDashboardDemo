@@ -1,32 +1,35 @@
 import useAuthStore from '../store/authStore';
-
-const API_BASE_URL = 'https://honepotdemobackend.onrender.com/api';
+import { API_CONFIG, buildURL, getAuthHeaders } from '../config/api';
 
 // Create an API client with automatic token handling
 class ApiClient {
-  constructor(baseURL) {
-    this.baseURL = baseURL;
+  constructor() {
+    this.baseURL = API_CONFIG.BASE_URL;
+    this.timeout = API_CONFIG.TIMEOUT;
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const token = localStorage.getItem('token');
+    const url = buildURL(endpoint);
     
     const config = {
+      ...API_CONFIG.DEFAULT_OPTIONS,
       headers: {
-        'Content-Type': 'application/json',
+        ...API_CONFIG.DEFAULT_OPTIONS.headers,
+        ...getAuthHeaders(),
         ...options.headers,
       },
       ...options,
     };
 
-    // Add authorization header if token exists
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
     try {
+      // Add timeout to the request
+      const timeoutId = setTimeout(() => {
+        throw new Error('Request timeout');
+      }, this.timeout);
+
       const response = await fetch(url, config);
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
 
       // Handle unauthorized responses
@@ -76,29 +79,29 @@ class ApiClient {
 }
 
 // Create API client instance
-const api = new ApiClient(API_BASE_URL);
+const api = new ApiClient();
 
 // API endpoints
 export const dashboardAPI = {
   // Get dashboard data
-  getDashboardData: () => api.get('/dashboard'),
+  getDashboardData: () => api.get(API_CONFIG.ENDPOINTS.DASHBOARD),
   
   // Get logs with pagination
   getLogs: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return api.get(`/dashboard/logs${queryString ? `?${queryString}` : ''}`);
+    return api.get(`${API_CONFIG.ENDPOINTS.LOGS}${queryString ? `?${queryString}` : ''}`);
   },
   
   // Health check
-  healthCheck: () => api.get('/health'),
+  healthCheck: () => api.get(API_CONFIG.ENDPOINTS.HEALTH),
 };
 
 export const authAPI = {
   // Login
-  login: (credentials) => api.post('/auth/login', credentials),
+  login: (credentials) => api.post(API_CONFIG.ENDPOINTS.LOGIN, credentials),
   
   // Verify token
-  verifyToken: () => api.post('/auth/verify'),
+  verifyToken: () => api.post(API_CONFIG.ENDPOINTS.VERIFY),
 };
 
 export default api;

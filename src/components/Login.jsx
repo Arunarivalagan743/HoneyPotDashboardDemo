@@ -157,7 +157,10 @@ const Login = () => {
             <h3 className="text-sm font-medium text-slate-300 mb-2">Demo Credentials:</h3>
             <div className="text-xs text-slate-400 space-y-1">
               <div>Email: <span className="text-sky-400 font-mono">admin@honeypot-siem.com</span></div>
-              <div>Password: <span className="text-sky-400 font-mono">SecureAdmin123!</span></div>
+              <div>Password: <span className="text-sky-400 font-mono">SecureAdmin1234!</span></div>
+            </div>
+            <div className="mt-2 text-xs text-slate-500">
+              API URL: <span className="text-purple-400 font-mono">{import.meta.env.VITE_API_URL || 'http://localhost:5001'}</span>
             </div>
           </div>
 

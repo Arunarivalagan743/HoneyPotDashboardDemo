@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { API_CONFIG, buildURL, getAuthHeaders } from '../config/api';
+
+// Utility function to save token
+const saveToken = (token) => {
+  if (token) {
+    localStorage.setItem('token', token);
+  } else {
+    localStorage.removeItem('token');
+  }
+};
 
 const useAuthStore = create(
   persist(
@@ -16,11 +26,7 @@ const useAuthStore = create(
       
       setToken: (token) => {
         set({ token });
-        if (token) {
-          localStorage.setItem('token', token);
-        } else {
-          localStorage.removeItem('token');
-        }
+        saveToken(token);
       },
 
       setLoading: (loading) => set({ isLoading: loading }),
@@ -33,26 +39,26 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
         
         try {
-          const response = await fetch('https://honepotdemobackend.onrender.com/api/auth/login', {
+          const response = await fetch(buildURL(API_CONFIG.ENDPOINTS.LOGIN), {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            ...API_CONFIG.DEFAULT_OPTIONS,
             body: JSON.stringify(credentials),
           });
 
           const data = await response.json();
 
           if (data.success) {
+            const token = data.token;
             set({
               user: data.admin,
-              token: data.token,
+              token: token,
               isAuthenticated: true,
               isLoading: false,
               error: null
             });
             
-            localStorage.setItem('token', data.token);
+            // Token is already saved by setToken above, no need to duplicate
+            saveToken(token);
             return { success: true, data };
           } else {
             set({
@@ -89,11 +95,12 @@ const useAuthStore = create(
         }
 
         try {
-          const response = await fetch('http://localhost:5001/api/auth/verify', {
+          const response = await fetch(buildURL(API_CONFIG.ENDPOINTS.VERIFY), {
             method: 'POST',
+            ...API_CONFIG.DEFAULT_OPTIONS,
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
+              ...API_CONFIG.DEFAULT_OPTIONS.headers,
+              ...getAuthHeaders(),
             },
           });
 
